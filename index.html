@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skins FF - Oficial</title>
+    <!-- Carregamento via CDN para evitar dependência de arquivos locais -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #050505; 
+            color: #fff; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden;
+        }
+        .font-gaming { font-family: 'Orbitron', sans-serif; }
+        .fire-gradient { 
+            background: linear-gradient(to right, #ff4d00, #ffb700); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .btn-fire { 
+            background: linear-gradient(45deg, #ff4d00, #ff8c00); 
+            box-shadow: 0 4px 15px rgba(255, 77, 0, 0.3); 
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-fire:active { transform: scale(0.95); }
+        .glass { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #ff4d00; border-radius: 10px; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0"
+  }
+}
+</script>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const ADMIN_PASS = "PRODUTO2025";
+        const STORAGE_KEY = "ff_skins_final_v1";
+
+        function App() {
+            const [products, setProducts] = useState([]);
+            const [view, setView] = useState('home'); // home, login, admin
+            const [passInput, setPassInput] = useState('');
+
+            useEffect(() => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    try { setProducts(JSON.parse(saved)); } catch(e) {}
+                }
+                initParticles();
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+            }, [products]);
+
+            const handleAdd = (name, img, link) => {
+                const newP = { id: Date.now().toString(), name, img, link };
+                setProducts([newP, ...products]);
+                setView('home');
+            };
+
+            const handleDelete = (id) => {
+                if(confirm("Deseja apagar esta textura?")) {
+                    setProducts(products.filter(p => p.id !== id));
+                }
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if(passInput.toUpperCase() === ADMIN_PASS) {
+                    setView('admin');
+                    setPassInput('');
+                } else {
+                    alert("Senha Incorreta!");
+                }
+            };
+
+            return (
+                <div className="min-h-screen pb-32">
+                    <header className="py-16 px-6 text-center animate-fade-in">
+                        <div className="inline-block px-4 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full mb-6">
+                            <span className="text-orange-500 text-[10px] font-black uppercase tracking-[0.4em]">Battle Royale Elite</span>
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-gaming font-black text-white leading-none tracking-tighter">
+                            SKINS <br/>
+                            <span className="fire-gradient">FREE FIRE</span>
+                        </h1>
+                        <p className="mt-4 text-white/30 text-[10px] font-bold uppercase tracking-[0.2em]">O melhor acervo de texturas do Brasil</p>
+                    </header>
+
+                    <main className="max-w-6xl mx-auto px-6">
+                        {view === 'home' && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
+                                {products.length === 0 ? (
+                                    <div className="col-span-full py-32 text-center glass rounded-[3rem] opacity-30 border-dashed border-2 border-white/10">
+                                        <i className="fas fa-box-open text-5xl mb-4"></i>
+                                        <p className="text-xs font-black uppercase tracking-widest">Nenhuma skin disponível</p>
+                                    </div>
+                                ) : (
+                                    products.map(p => (
+                                        <div key={p.id} className="glass rounded-[2.5rem] p-3 transition-all duration-500 hover:scale-[1.02] flex flex-col shadow-2xl">
+                                            <div className="relative aspect-square rounded-[2rem] overflow-hidden bg-black/50 mb-4">
+                                                <img src={p.img} className="w-full h-full object-cover" />
+                                                <div className="absolute top-4 left-4 bg-orange-600 text-white text-[8px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-lg">NEW</div>
+                                            </div>
+                                            <div className="px-3 pb-3">
+                                                <h3 className="font-gaming text-lg font-bold mb-5 truncate uppercase">{p.name}</h3>
+                                                <button 
+                                                    onClick={() => window.open(p.link.startsWith('http') ? p.link : `https://${p.link}`, '_blank')}
+                                                    className="w-full btn-fire text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em]"
+                                                >
+                                                    BAIXAR AGORA
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {view === 'login' && (
+                            <div className="max-w-md mx-auto py-10 animate-fade-in">
+                                <div className="glass p-10 rounded-[3rem] text-center">
+                                    <h2 className="text-xl font-gaming font-bold text-white mb-8 uppercase">Acesso Admin</h2>
+                                    <form onSubmit={handleLogin} className="space-y-4">
+                                        <input 
+                                            type="password" 
+                                            placeholder="DIGITE A SENHA" 
+                                            className="w-full bg-black/60 border border-white/10 rounded-2xl p-5 text-center font-gaming text-white outline-none focus:border-orange-500"
+                                            value={passInput}
+                                            onChange={(e) => setPassInput(e.target.value)}
+                                            autoFocus
+                                        />
+                                        <button className="w-full btn-fire text-white py-5 rounded-2xl font-black uppercase text-xs">ENTRAR NO PAINEL</button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'admin' && (
+                            <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
+                                <AdminForm onAdd={handleAdd} />
+                                <div className="glass p-8 rounded-[2.5rem]">
+                                    <h3 className="font-gaming text-xs font-bold mb-6 opacity-50 uppercase">Skins Ativas</h3>
+                                    <div className="space-y-3">
+                                        {products.map(p => (
+                                            <div key={p.id} className="flex items-center justify-between bg-black/40 p-4 rounded-2xl border border-white/5">
+                                                <div className="flex items-center gap-4">
+                                                    <img src={p.img} className="w-12 h-12 rounded-xl object-cover" />
+                                                    <span className="font-bold text-xs uppercase">{p.name}</span>
+                                                </div>
+                                                <button onClick={() => handleDelete(p.id)} className="text-red-500 w-10 h-10 flex items-center justify-center hover:bg-red-500/10 rounded-xl">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/80 backdrop-blur-3xl p-2.5 rounded-full border border-white/10 shadow-2xl z-50">
+                        <button onClick={() => setView('home')} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${view === 'home' ? 'bg-orange-600 text-white' : 'text-gray-500'}`}>
+                            <i className="fas fa-home text-xl"></i>
+                        </button>
+                        <button onClick={() => setView(view === 'admin' ? 'home' : (view === 'login' ? 'home' : 'login'))} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${view === 'admin' || view === 'login' ? 'bg-orange-600 text-white' : 'text-gray-500'}`}>
+                            <i className={view === 'admin' ? "fas fa-times text-xl" : "fas fa-plus text-xl"}></i>
+                        </button>
+                    </nav>
+                </div>
+            );
+        }
+
+        function AdminForm({ onAdd }) {
+            const [name, setName] = useState('');
+            const [link, setLink] = useState('');
+            const [img, setImg] = useState(null);
+            const fileRef = useRef();
+
+            const handleFile = (e) => {
+                const reader = new FileReader();
+                reader.onload = () => setImg(reader.result);
+                reader.readAsDataURL(e.target.files[0]);
+            };
+
+            return (
+                <div className="glass p-8 rounded-[2.5rem]">
+                    <h2 className="font-gaming text-center text-lg mb-8 fire-gradient uppercase">Postar Nova Skin</h2>
+                    <div onClick={() => fileRef.current.click()} className="aspect-video bg-black/40 border-2 border-dashed border-white/10 rounded-[2rem] flex items-center justify-center cursor-pointer overflow-hidden mb-6 hover:border-orange-500/50 transition-all">
+                        {img ? <img src={img} className="w-full h-full object-cover" /> : <div className="text-center opacity-30"><i className="fas fa-image text-4xl mb-2"></i><p className="text-[10px] font-black uppercase">Selecionar Foto</p></div>}
+                        <input type="file" ref={fileRef} className="hidden" onChange={handleFile} accept="image/*" />
+                    </div>
+                    <input type="text" placeholder="NOME DO ITEM" className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 mb-4 text-white uppercase font-bold outline-none focus:border-orange-500" value={name} onChange={e => setName(e.target.value)} />
+                    <input type="text" placeholder="LINK (MEDIAFIRE/MEGA)" className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 mb-6 text-white outline-none focus:border-orange-500" value={link} onChange={e => setLink(e.target.value)} />
+                    <button onClick={() => onAdd(name, img, link)} className="w-full btn-fire text-white py-5 rounded-2xl font-black uppercase text-xs">PUBLICAR SKIN</button>
+                </div>
+            );
+        }
+
+        function initParticles() {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            let w = canvas.width = window.innerWidth;
+            let h = canvas.height = window.innerHeight;
+            let parts = Array.from({length: 40}, () => ({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2, v: Math.random()*0.5 + 0.1 }));
+            function draw() {
+                ctx.clearRect(0,0,w,h); ctx.fillStyle = "rgba(255, 77, 0, 0.15)";
+                parts.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
+                    p.y -= p.v; if(p.y < 0) p.y = h;
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+            window.addEventListener('resize', () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
